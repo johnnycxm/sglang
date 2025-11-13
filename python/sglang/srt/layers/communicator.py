@@ -644,13 +644,8 @@ class CommunicateWithAllReduceAndLayerNormFn:
                 (_is_sm100_supported or _is_sm90_supported)
                 and _is_flashinfer_available
                 and hasattr(layernorm, "forward_with_allreduce_fusion")
-<<<<<<< HEAD
                 and server_args.enable_flashinfer_allreduce_fusion
                 and hidden_states.shape[0] <= 4096
-=======
-                and get_global_server_args().enable_flashinfer_allreduce_fusion
-                and hidden_states.shape[0] <= 2048
->>>>>>> main
             ):
                 hidden_states, residual = layernorm.forward_with_allreduce_fusion(
                     hidden_states, residual

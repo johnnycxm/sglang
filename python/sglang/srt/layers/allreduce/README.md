@@ -71,27 +71,3 @@ Config files are saved in `configs/` directory with format: `allreduce_config_hi
     }
 }
 ```
-
-## Compatibility
-
-- **When disabled**: All existing optimizations (e.g., DeepSeek-V3 auto-fusion) remain unchanged
-- **When enabled**: Adaptive logic takes over, original fusion logic is disabled
-- **No config file**: Uses default heuristic (bs≤128 uses fusion, bs>128 uses torch_symm_mem)
-
-## Environment Variables
-
-```bash
-# Custom config directory
-export SGLANG_ALLREDUCE_CONFIG_DIR=/path/to/configs
-```
-
-## FAQ
-
-**Q: Config file not found?**  
-Run tuning script to generate, or use default heuristic.
-
-**Q: Some backends show "Skipped" during tuning?**  
-Normal behavior. System will automatically use available backends.
-
-**Q: How to verify it's working?**  
-Check logs for "Selected backend for bs=..." messages.
