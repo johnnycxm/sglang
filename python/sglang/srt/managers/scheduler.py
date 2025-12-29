@@ -161,6 +161,7 @@ from sglang.srt.managers.utils import GenerationBatchResult, validate_input_leng
 from sglang.srt.mem_cache.cache_init_params import CacheInitParams
 from sglang.srt.mem_cache.common import release_kv_cache
 from sglang.srt.mem_cache.radix_cache import RadixCache
+from sglang.srt.mem_cache.sparsity import get_sparse_coordinator
 from sglang.srt.model_executor.forward_batch_info import ForwardMode, PPProxyTensors
 from sglang.srt.multiplex.multiplexing_mixin import SchedulerMultiplexMixin
 from sglang.srt.parser.reasoning_parser import ReasoningParser
@@ -2079,6 +2080,12 @@ class Scheduler(
             )
 
         new_batch.prepare_for_extend()
+
+        # Notify sparse coordinator about new requests
+        if self.server_args.enable_hierarchical_sparse_attention:
+            sparse_coordinator = get_sparse_coordinator()
+            for req in new_batch.reqs:
+                sparse_coordinator.on_request_begin(req)
 
         # Mixed-style chunked prefill
         if (
