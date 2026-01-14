@@ -9,6 +9,7 @@ diffusion models.
 """
 
 import os
+import time
 
 import imageio
 import torch
@@ -54,10 +55,12 @@ def post_process_sample(
     fps: int,
     save_output: bool = True,
     save_file_path: str = None,
+    timings: dict[str, float] | None = None,
 ):
     """
     Process sample output and save video if necessary
     """
+    t_start = time.perf_counter()
     # 1. Vectorized processing on GPU/CPU tensor
     if sample.dim() == 3:
         # for images, dim t is missing
@@ -66,13 +69,17 @@ def post_process_sample(
     # Convert to uint8 and move to CPU in bulk
     # Shape: [C, T, H, W] -> [T, H, W, C]
     sample = (sample * 255).clamp(0, 255).to(torch.uint8)
+    t_after_convert = time.perf_counter()
     videos = sample.permute(1, 2, 3, 0).cpu().numpy()
+    t_after_to_numpy = time.perf_counter()
 
     # Convert to list of frames for imageio
     frames = list(videos)
 
     # 2. Save outputs if requested
+    save_time_s = 0.0
     if save_output:
+        t_save_start = time.perf_counter()
         if save_file_path:
             os.makedirs(os.path.dirname(save_file_path), exist_ok=True)
             if data_type == DataType.VIDEO:
@@ -101,5 +108,13 @@ def post_process_sample(
             logger.info(f"Output saved to {CYAN}{save_file_path}{RESET}")
         else:
             logger.info(f"No output path provided, output not saved")
+        save_time_s = time.perf_counter() - t_save_start
+
+    if timings is not None:
+        total_time_s = time.perf_counter() - t_start
+        timings["postprocess_total_s"] = total_time_s
+        timings["postprocess_convert_s"] = t_after_convert - t_start
+        timings["postprocess_to_numpy_s"] = t_after_to_numpy - t_after_convert
+        timings["postprocess_save_s"] = save_time_s
 
     return frames

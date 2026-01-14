@@ -221,7 +221,10 @@ class DiffGenerator:
                 with log_generation_timer(
                     logger, req.prompt, request_idx + 1, len(requests)
                 ) as timer:
+                    t_scheduler_wait_start = time.perf_counter()
                     output_batch = self._send_to_scheduler_and_wait_for_response([req])
+                    t_scheduler_wait_end = time.perf_counter()
+                    scheduler_roundtrip_s = t_scheduler_wait_end - t_scheduler_wait_start
                     if output_batch.error:
                         raise Exception(f"{output_batch.error}")
 
@@ -233,6 +236,7 @@ class DiffGenerator:
                         continue
                     for output_idx, sample in enumerate(output_batch.output):
                         num_outputs = len(output_batch.output)
+                        post_timings: dict[str, float] = {}
                         frames = post_process_sample(
                             sample,
                             fps=req.fps,
@@ -242,6 +246,7 @@ class DiffGenerator:
                                 num_outputs, output_idx
                             ),
                             data_type=req.data_type,
+                            timings=post_timings,
                         )
 
                         result_item: dict[str, Any] = {
@@ -251,6 +256,10 @@ class DiffGenerator:
                             "size": (req.height, req.width, req.num_frames),
                             "generation_time": timer.duration,
                             "peak_memory_mb": output_batch.peak_memory_mb,
+                            "client_timings": {
+                                "scheduler_roundtrip_s": scheduler_roundtrip_s,
+                                **post_timings,
+                            },
                             "timings": (
                                 output_batch.timings.to_dict()
                                 if output_batch.timings
@@ -261,6 +270,15 @@ class DiffGenerator:
                             "trajectory_decoded": output_batch.trajectory_decoded,
                             "prompt_index": output_idx,
                         }
+                        if getattr(req, "debug", False):
+                            logger.info(
+                                "[TimingBreakdown] scheduler_roundtrip=%.4fs, postprocess_total=%.4fs (convert=%.4fs, to_numpy=%.4fs, save=%.4fs)",
+                                scheduler_roundtrip_s,
+                                post_timings.get("postprocess_total_s", 0.0),
+                                post_timings.get("postprocess_convert_s", 0.0),
+                                post_timings.get("postprocess_to_numpy_s", 0.0),
+                                post_timings.get("postprocess_save_s", 0.0),
+                            )
                         results.append(result_item)
             except Exception:
                 continue
