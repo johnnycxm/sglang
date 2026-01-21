@@ -1,0 +1,18 @@
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -77,11 +77,14 @@
+ ]
+
+ # HIP (Heterogeneous-computing Interface for Portability) for AMD
+-# => base docker rocm/vllm-dev:20250114, not from public vllm whl
+ srt_hip = [
++  "amd-aiter @ https://pypi.amd.com/rocm-7.1.1/packages/amd-aiter/amd_aiter-0.1.10-cp310-cp310-linux_x86_64.whl ; python_version == '3.10'",
++  "amd-aiter @ https://pypi.amd.com/rocm-7.1.1/packages/amd-aiter/amd_aiter-0.1.10-cp312-cp312-linux_x86_64.whl ; python_version == '3.12'",
++  "mooncake-transfer-engine-non-cuda==0.3.8.post1",
++  "petit_kernel==0.0.2",
++  "sgl-kernel @ https://github.com/sgl-project/whl/releases/download/v0.3.21/sgl_kernel-0.3.21+rocm700-cp310-abi3-manylinux2014_x86_64.whl",
+   "sglang[runtime_common]",
+   "torch",
+-  "petit_kernel==0.0.2",
+   "wave-lang==3.8.2",
+ ]
