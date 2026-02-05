@@ -277,7 +277,7 @@ jobs:
           git push
 
   build-musa43:
-    if: github.repository == 'sgl-project/sglang'
+    if: github.repository == 'johnnycxm/sglang'
     runs-on: x86-kernel-build-musa-node
     strategy:
       matrix:
