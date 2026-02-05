@@ -296,8 +296,8 @@ jobs:
       - name: Build wheels
         run: |
           cd sgl-kernel
-          chmod +x ./build_musa.sh
-          ./build_musa.sh "${{ matrix.musa-version }}"
+          mv pyproject_musa.toml pyproject.toml
+          python setup_musa.py sdist bdist_wheel
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
