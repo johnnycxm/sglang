@@ -278,7 +278,7 @@ jobs:
 
   build-musa43:
     if: github.repository == 'sgl-project/sglang'
-    runs-on: action_runner_1_gpu_1
+    runs-on: x86-kernel-build-musa-node
     strategy:
       matrix:
         python-version: ["3.10"]
