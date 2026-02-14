@@ -120,8 +120,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [fxy-sglang]
-    runs-on: ${{matrix.runner}}
+        runner: [action_gpu_runner_0]
+    runs-on: ${{self-hosted}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -166,8 +166,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [fxy-sglang]
-    runs-on: ${{matrix.runner}}
+        runner: [action_gpu_runner_0]
+    runs-on: ${{self-hosted}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
