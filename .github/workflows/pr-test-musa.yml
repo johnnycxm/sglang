@@ -1,0 +1,193 @@
+name: PR Test (MUSA)
+# Dynamic run-name for /rerun-stage commands to enable URL lookup
+# Format: "[stage-name] sha" for fork PRs, "[stage-name]" for non-fork, default for normal runs
+run-name: ${{ inputs.target_stage && (inputs.pr_head_sha && format('[{0}] {1}', inputs.target_stage, inputs.pr_head_sha) || format('[{0}]', inputs.target_stage)) || '' }}
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "python/**"
+      - "scripts/ci/**"
+      - "test/**"
+      - "sgl-kernel/**"
+      - ".github/workflows/pr-test-musa.yml"
+      - "docker/musa.Dockerfile"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "python/**"
+      - "scripts/ci/**"
+      - "test/**"
+      - "sgl-kernel/**"
+      - ".github/workflows/pr-test-musa.yml"
+      - "docker/musa.Dockerfile"
+  workflow_dispatch:
+    inputs:
+      target_stage:
+        description: "Specific stage to run (optional, for quick testing)"
+        required: false
+        type: string
+        default: ""
+      pr_head_sha:
+        description: "PR head SHA to checkout (for /rerun-stage on fork PRs)"
+        required: false
+        type: string
+        default: ""
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref (branch, tag, or SHA) to test. If not provided, uses the default branch.'
+        required: false
+        type: string
+        default: ''
+      run_all_tests:
+        description: "Run all tests (for releasing or testing purpose)"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  # Include pr_head_sha in group for /rerun-stage dispatches to avoid collisions with main branch runs
+  group: pr-test-musa-${{ inputs.pr_head_sha || inputs.ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_call' }}
+
+jobs:
+  call-gate:
+    uses: ./.github/workflows/pr-gate.yml
+    secrets: inherit
+  check-changes:
+    needs: [call-gate]
+    runs-on: ubuntu-latest
+    outputs:
+      main_package: ${{ steps.filter.outputs.main_package || steps.run-mode.outputs.run_all_tests }}
+      sgl_kernel: ${{ steps.filter.outputs.sgl_kernel || steps.run-mode.outputs.run_all_tests }}
+      multimodal_gen: ${{ steps.filter.outputs.multimodal_gen || steps.run-mode.outputs.run_all_tests }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.pr_head_sha || inputs.ref || github.sha }}
+
+      - name: Determine run mode
+        id: run-mode
+        run: |
+          # Run all tests for workflow_call (when ref input is provided)
+          # Note: github.event_name is inherited from caller, so we detect workflow_call by checking inputs.ref
+          if [[ "${{ inputs.run_all_tests }}" == "true" ]]; then
+            echo "run_all_tests=true" >> $GITHUB_OUTPUT
+            echo "Run mode: ALL TESTS (run_all_tests=${{ inputs.run_all_tests }})"
+          else
+            echo "run_all_tests=false" >> $GITHUB_OUTPUT
+            echo "Run mode: FILTERED (triggered by ${{ github.event_name }})"
+          fi
+
+      - name: Detect file changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        if: steps.run-mode.outputs.run_all_tests != 'true'
+        with:
+          filters: |
+            main_package:
+              - "python/sglang/!(multimodal_gen)/**"
+              - "python/pyproject_rocm.toml"
+              - "python/pyproject_other.toml"
+              - "scripts/ci/musa/*"
+              - "scripts/ci/utils/*"
+              - "test/**"
+              - ".github/workflows/pr-test-musa.yml"
+            sgl_kernel:
+              - "sgl-kernel/**"
+              - ".github/workflows/pr-test-musa.yml"
+            multimodal_gen:
+              - "python/sglang/multimodal_gen/**"
+              - "python/sglang/cli/**"
+              - "python/pyproject_rocm.toml"
+              - "python/pyproject_other.toml"
+
+  # =============================================== sgl-kernel ====================================================
+  sgl-kernel-unit-test-musa:
+    needs: [check-changes]
+    if: |
+      always() &&
+      (
+        (inputs.target_stage == 'sgl-kernel-unit-test-musa') ||
+        (
+          !inputs.target_stage &&
+          needs.check-changes.outputs.sgl_kernel == 'true'
+        )
+      )
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [fxy-sglang]
+    runs-on: ${{matrix.runner}}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.pr_head_sha || inputs.ref || github.sha }}
+
+      - name: Ensure VRAM is clear
+        run: bash scripts/ensure_vram_clear.sh rocm
+
+      # - name: Start CI container
+      #   run: bash scripts/ci/amd/amd_ci_start_container.sh
+      #   env:
+      #     GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Install dependencies
+        run: |
+          bash scripts/ci/musa/musa_ci_install_dependency.sh
+
+      - name: Run test
+        timeout-minutes: 14
+        run: |
+          docker exec -w /sgl-workspace/sglang/sgl-kernel/tests fxy-sglang python3 -m pytest test_dsv3_router_gemm.py
+          docker exec -w /sgl-workspace/sglang/sgl-kernel/tests fxy-sglang python3 -m pytest test_es_fp8_blockwise_moe.py
+          docker exec -w /sgl-workspace/sglang/sgl-kernel/tests/speculative fxy-sglang python3 -m pytest test_eagle_utils.py
+          docker exec -w /sgl-workspace/sglang/sgl-kernel/tests fxy-sglang python3 -m pytest test_speculative_sampling.py
+          docker exec -w /sgl-workspace/sglang/sgl-kernel/tests fxy-sglang python3 -m pytest test_moe_fused_gate.py
+          docker exec -w /sgl-workspace/sglang/sgl-kernel/tests fxy-sglang python3 -m pytest test_moe_topk_sigmoid.py
+          docker exec -w /sgl-workspace/sglang/sgl-kernel/tests fxy-sglang python3 -m pytest test_per_tensor_quant_fp8.py
+          docker exec -w /sgl-workspace/sglang/sgl-kernel/tests/sgl_diffusion fxy-sglang python3 -m pytest test_torch_defaults_reset.py
+
+  sgl-kernel-unit-test-2-gpu-musa:
+    needs: [check-changes]
+    if: |
+      always() &&
+      (
+        (inputs.target_stage == 'sgl-kernel-unit-test-2-gpu-musa') ||
+        (
+          !inputs.target_stage &&
+          needs.check-changes.outputs.sgl_kernel == 'true'
+        )
+      )
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [fxy-sglang]
+    runs-on: ${{matrix.runner}}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.pr_head_sha || inputs.ref || github.sha }}
+
+      # - name: Ensure VRAM is clear
+      #   run: bash scripts/ensure_vram_clear.sh musa
+
+      # - name: Start CI container
+      #   run: bash scripts/ci/amd/amd_ci_start_container.sh
+      #   env:
+      #     GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Install dependencies
+        run: |
+          bash scripts/ci/musa/musa_ci_install_dependency.sh
+
+      - name: Run test
+        timeout-minutes: 20
+        run: |
+          docker exec -w /sglang-checkout/sgl-kernel/tests ci_sglang python3 -m pytest test_amd_deterministic_custom_allreduce.py
+          docker exec -w /sglang-checkout/sgl-kernel/tests ci_sglang python3 -m pytest test_amd_nccl_allreduce_determinism.py
