@@ -121,7 +121,7 @@ jobs:
       fail-fast: false
       matrix:
         runner: [action_gpu_runner_0]
-    runs-on: ${{self-hosted}}
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -167,7 +167,7 @@ jobs:
       fail-fast: false
       matrix:
         runner: [action_gpu_runner_0]
-    runs-on: ${{self-hosted}}
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
