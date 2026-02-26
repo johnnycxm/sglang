@@ -295,7 +295,7 @@ jobs:
 
   build-musa43:
     if: |
-      github.repository == 'sgl-project/sglang' &&
+      github.repository == 'johnnycxm/sglang' &&
       (github.event.inputs.target == 'all' || github.event.inputs.target == 'musa43')
     runs-on: kernel-build-node-musa
     strategy:
