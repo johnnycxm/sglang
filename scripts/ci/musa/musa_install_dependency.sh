@@ -40,4 +40,6 @@ else
 
     #cd "${REPO_ROOT}/sgl-kernel"
     #rm -f pyproject.toml && mv pyproject_musa.toml pyproject.toml && python3 setup_musa.py install
+
+    cd "${REPO_ROOT}/sgl-kernel" && MTGPU_TARGET=mp_31 python3 setup_musa.py install
 fi

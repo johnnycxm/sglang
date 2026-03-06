@@ -67,6 +67,9 @@ jobs:
               - "python/sglang/multimodal_gen/**"
               - "python/sglang/cli/**"
               - "python/pyproject_other.toml"
+            sgl_kernel:
+              - "sgl-kernel/**"
+              - ".github/workflows/pr-test-musa.yml"
 
   # ==================== PR Gate ==================== #
   pr-gate:
@@ -132,6 +135,65 @@ jobs:
           python3 sglang/multimodal_gen/test/run_suite.py \
             --suite 2-gpu
 
+# =============================================== sgl-kernel ====================================================
+  sgl-kernel-unit-test-musa:
+    needs: [check-changes, pr-gate]
+    if: needs.check-changes.outputs.sgl_kernel == 'true'
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1]
+    runs-on: s5000-1-gpu-runner
+    env:
+      HF_HUB_CACHE: /hf-cache/hub
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Install dependencies
+        run: |
+          bash scripts/ci/musa/musa_install_dependency.sh
+
+      - name: Run sgl-kernel test
+        timeout-minutes: 240
+        run: |
+          pytest /workspace/sglang/sgl-kernel/tests/test_dsv3_router_gemm.py
+          pytest /workspace/sglang/sgl-kernel/tests/test_es_fp8_blockwise_moe.py
+          pytest /workspace/sglang/sgl-kernel/tests/speculative/test_eagle_utils.py
+          pytest /workspace/sglang/sgl-kernel/tests/speculative/test_speculative_sampling.py
+          pytest /workspace/sglang/sgl-kernel/tests/test_moe_fused_gate.py
+          pytest /workspace/sglang/sgl-kernel/tests/test_moe_topk_sigmoid.py
+          pytest /workspace/sglang/sgl-kernel/tests/test_per_tensor_quant_fp8.py
+          pytest /workspace/sglang/sgl-kernel/tests/sgl_diffusion/test_torch_defaults_reset.py
+
+  sgl-kernel-unit-test-2-gpu-musa:
+    needs: [check-changes, pr-gate]
+    if: needs.check-changes.outputs.sgl_kernel == 'true'
+    runs-on: s5000-2-gpu-runner
+    env:
+      HF_HUB_CACHE: /hf-cache/hub
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Install dependencies
+        run: |
+          bash scripts/ci/musa/musa_install_dependency.sh
+
+      - name: Run test2 sgl-kernel
+        timeout-minutes: 240
+        run: |
+         pytest /workspace/sglang/sgl-kernel/tests/test_custom_allreduce.py
+
   pr-test-musa-finish:
     needs:
       [
@@ -167,3 +229,5 @@ jobs:
           # If the loop completes, all jobs were successful
           echo "All jobs completed successfully"
           exit
+
+
