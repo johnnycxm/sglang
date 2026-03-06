@@ -186,9 +186,9 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      - name: Install dependencies
-        run: |
-          bash scripts/ci/musa/musa_install_dependency.sh
+      # - name: Install dependencies
+      #   run: |
+      #     bash scripts/ci/musa/musa_install_dependency.sh
 
       - name: Run test2 sgl-kernel
         timeout-minutes: 240
