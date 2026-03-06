@@ -141,10 +141,10 @@ jobs:
     needs: [check-changes, pr-gate]
     if: needs.check-changes.outputs.sgl_kernel == 'true'
       
-    strategy:
-      fail-fast: false
-      matrix:
-        part: [0, 1]
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     part: [0, 1]
     runs-on: s5000-1-gpu-runner
     env:
       HF_HUB_CACHE: /hf-cache/hub
@@ -154,9 +154,9 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      - name: Install dependencies
-        run: |
-          bash scripts/ci/musa/musa_install_dependency.sh
+      # - name: Install dependencies
+      #   run: |
+      #     bash scripts/ci/musa/musa_install_dependency.sh
 
       - name: Run sgl-kernel test
         timeout-minutes: 240
@@ -173,13 +173,13 @@ jobs:
   sgl-kernel-unit-test-2-gpu-musa:
     needs: [check-changes, pr-gate]
     if: needs.check-changes.outputs.sgl_kernel == 'true'
-    runs-on: s5000-2-gpu-runner
+    runs-on: s5000-1-gpu-runner
     env:
       HF_HUB_CACHE: /hf-cache/hub
-    strategy:
-      fail-fast: false
-      matrix:
-        part: [0, 1]
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     part: [0, 1]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
