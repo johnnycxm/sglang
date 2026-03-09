@@ -141,10 +141,6 @@ jobs:
     needs: [check-changes, pr-gate]
     if: needs.check-changes.outputs.sgl_kernel == 'true'
       
-    # strategy:
-    #   fail-fast: false
-    #   matrix:
-    #     part: [0, 1]
     runs-on: s5000-1-gpu-runner
     env:
       HF_HUB_CACHE: /hf-cache/hub
@@ -154,44 +150,23 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      # - name: Install dependencies
-      #   run: |
-      #     bash scripts/ci/musa/musa_install_dependency.sh
+      - name: Install dependencies
+        run: |
+          bash scripts/ci/musa/musa_install_dependency.sh
 
       - name: Run sgl-kernel test
         timeout-minutes: 240
         run: |
-          pytest /workspace/sglang/sgl-kernel/tests/test_dsv3_router_gemm.py
-          pytest /workspace/sglang/sgl-kernel/tests/test_es_fp8_blockwise_moe.py
-          pytest /workspace/sglang/sgl-kernel/tests/speculative/test_eagle_utils.py
-          pytest /workspace/sglang/sgl-kernel/tests/speculative/test_speculative_sampling.py
-          pytest /workspace/sglang/sgl-kernel/tests/test_per_tensor_quant_fp8.py
-          pytest /workspace/sglang/sgl-kernel/tests/test_torch_defaults_reset.py
+          pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/test_dsv3_router_gemm.py
+          pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/test_mscclpp.py
+          pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/test_per_tensor_quant_fp8.py
+          pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/test_per_token_quant_fp8.py
+          pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/speculative/test_eagle_utils.py
+          pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/speculative/test_ngram_utils.py
+          pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/speculative/test_speculative_sampling.py
+          pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/test_torch_defaults_reset.py
+          pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/test_custom_allreduce.py
 
-  sgl-kernel-unit-test-2-gpu-musa:
-    needs: [check-changes, pr-gate]
-    if: needs.check-changes.outputs.sgl_kernel == 'true'
-    runs-on: s5000-1-gpu-runner
-    env:
-      HF_HUB_CACHE: /hf-cache/hub
-    # strategy:
-    #   fail-fast: false
-    #   matrix:
-    #     part: [0, 1]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-
-      # - name: Install dependencies
-      #   run: |
-      #     bash scripts/ci/musa/musa_install_dependency.sh
-
-      - name: Run test2 sgl-kernel
-        timeout-minutes: 240
-        run: |
-         pytest /workspace/sglang/sgl-kernel/tests/test_custom_allreduce.py
 
   pr-test-musa-finish:
     needs:
@@ -200,6 +175,7 @@ jobs:
         check-changes,
         multimodal-gen-test-1-gpu-musa,
         multimodal-gen-test-2-gpu-musa,
+        sgl-kernel-unit-test-musa,
       ]
     if: always()
     runs-on: ubuntu-latest
