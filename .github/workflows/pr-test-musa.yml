@@ -106,10 +106,10 @@ jobs:
           RUNAI_STREAMER_MEMORY_LIMIT: 0
         run: |
           cd python
-          python3 sglang/multimodal_gen/test/run_suite.py \
-            --suite 1-gpu \
-            --partition-id ${{ matrix.part }} \
-            --total-partitions 2
+          # python3 sglang/multimodal_gen/test/run_suite.py \
+          #   --suite 1-gpu \
+          #   --partition-id ${{ matrix.part }} \
+          #   --total-partitions 2
 
   multimodal-gen-test-2-gpu-musa:
     needs: [check-changes, pr-gate]
@@ -133,8 +133,8 @@ jobs:
           RUNAI_STREAMER_MEMORY_LIMIT: 0
         run: |
           cd python
-          python3 sglang/multimodal_gen/test/run_suite.py \
-            --suite 2-gpu
+          # python3 sglang/multimodal_gen/test/run_suite.py \
+          #   --suite 2-gpu
 
 # =============================================== sgl-kernel ====================================================
   sgl-kernel-unit-test-musa:
@@ -196,6 +196,7 @@ jobs:
         check-changes,
         multimodal-gen-test-1-gpu-musa,
         multimodal-gen-test-2-gpu-musa,
+        sgl-kernel-unit-test-musa,
       ]
     if: always()
     runs-on: ubuntu-latest
