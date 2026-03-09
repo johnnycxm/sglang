@@ -167,6 +167,28 @@ jobs:
           pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/test_torch_defaults_reset.py
           pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/test_custom_allreduce.py
 
+  sgl-kernel-unit-test-2-gpu-musa:
+    needs: [check-changes, pr-gate]
+    if: needs.check-changes.outputs.sgl_kernel == 'true'
+    runs-on: s5000-1-gpu-runner
+    env:
+      HF_HUB_CACHE: /hf-cache/hub
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Install dependencies
+        run: |
+          bash scripts/ci/musa/musa_install_dependency.sh
+
+      - name: Run test2 sgl-kernel
+        timeout-minutes: 240
+        run: |
+         pytest /workspace/actions-runner/_work/sglang/sglang/sgl-kernel/tests/test_custom_allreduce.py
+
   pr-test-musa-finish:
     needs:
       [
