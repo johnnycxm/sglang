@@ -96,9 +96,9 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      - name: Install dependencies
-        run: |
-          bash scripts/ci/musa/musa_install_dependency.sh
+      # - name: Install dependencies
+      #   run: |
+      #     bash scripts/ci/musa/musa_install_dependency.sh
 
       - name: Run diffusion server tests (1-GPU)
         timeout-minutes: 240
@@ -123,9 +123,9 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      - name: Install dependencies
-        run: |
-          bash scripts/ci/musa/musa_install_dependency.sh
+      # - name: Install dependencies
+      #   run: |
+      #     bash scripts/ci/musa/musa_install_dependency.sh
 
       - name: Run diffusion server tests (2-GPU)
         timeout-minutes: 240
