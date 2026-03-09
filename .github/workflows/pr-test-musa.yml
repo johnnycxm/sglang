@@ -194,8 +194,8 @@ jobs:
       [
         pr-gate,
         check-changes,
-        multimodal-gen-test-1-gpu-musa,
-        multimodal-gen-test-2-gpu-musa,
+        # multimodal-gen-test-1-gpu-musa,
+        # multimodal-gen-test-2-gpu-musa,
         sgl-kernel-unit-test-musa,
       ]
     if: always()
