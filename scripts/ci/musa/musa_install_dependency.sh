@@ -38,7 +38,7 @@ else
     rm -f "${REPO_ROOT}/python/pyproject.toml" && mv "${REPO_ROOT}/python/pyproject_other.toml" "${REPO_ROOT}/python/pyproject.toml"
     cd "${REPO_ROOT}" && ${PIP_INSTALL} -v -e "python[all_musa]"
 
-    #cd "${REPO_ROOT}/sgl-kernel"
-    #rm -f pyproject.toml && mv pyproject_musa.toml pyproject.toml && MTGPU_TARGET=mp_31 python3 setup_musa.py install
+    cd "${REPO_ROOT}/sgl-kernel"
+    rm -f pyproject.toml && mv pyproject_musa.toml pyproject.toml && MTGPU_TARGET=mp_31 python3 setup_musa.py install
     echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 fi
