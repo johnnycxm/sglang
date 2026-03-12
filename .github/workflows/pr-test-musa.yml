@@ -148,8 +148,7 @@ jobs:
 
   multimodal-gen-layer-unit-test-musa:
     needs: [check-changes, pr-gate]
-    if: needs.check-changes.outputs.multimodal_gen == 'true'
-      || inputs.target_stage == 'multimodal-gen-layer-unit-test-musa'
+    if: needs.check-changes.outputs.multimodal_gen == 'true' || inputs.target_stage == 'multimodal-gen-layer-unit-test-musa'
     runs-on: s5000-1-gpu-runner
     env:
       HF_HUB_CACHE: /hf-cache/hub
