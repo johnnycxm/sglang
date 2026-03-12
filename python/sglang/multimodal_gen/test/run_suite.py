@@ -54,7 +54,18 @@ suites_ascend = {
     ]
 }
 
+suites_musa = {
+    "1-gpu-musa": [
+        "musa/test_server_a_musa.py",
+        "musa/test_server_b_musa.py",
+    ],
+    "2-gpu-musa": [
+        "musa/test_server_2_gpu_a_musa.py",
+    ],
+}
+
 SUITES.update(suites_ascend)
+SUITES.update(suites_musa)
 
 
 def parse_args():

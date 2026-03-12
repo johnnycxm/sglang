@@ -774,6 +774,8 @@ TWO_GPU_CASES_B = [
 ]
 
 # Load global configuration
-BASELINE_CONFIG = BaselineConfig.load(
-    Path(__file__).with_name("perf_baselines.json")
-).update(Path(__file__).parent / "ascend" / "perf_baselines_npu.json")
+BASELINE_CONFIG = (
+    BaselineConfig.load(Path(__file__).with_name("perf_baselines.json"))
+    .update(Path(__file__).parent / "ascend" / "perf_baselines_npu.json")
+    .update(Path(__file__).parent / "musa" / "perf_baselines_musa.json")
+)
