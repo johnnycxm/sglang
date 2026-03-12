@@ -6,7 +6,6 @@ from sglang.multimodal_gen.test.server.testcase_configs import (
     DiffusionServerArgs,
     DiffusionTestCase,
     T2I_sampling_params,
-    TI2V_sampling_params,
 )
 
 ONE_GPU_MUSA_CASES_A: list[DiffusionTestCase] = [
@@ -38,13 +37,15 @@ ONE_GPU_MUSA_CASES_B: list[DiffusionTestCase] = [
 
 TWO_GPU_MUSA_CASES_A: list[DiffusionTestCase] = [
     DiffusionTestCase(
-        "wan2_1_i2v_14b_480P_2gpu_musa",
+        "wan2_2_t2v_a14b_2gpu_musa",
         DiffusionServerArgs(
-            model_path="Wan-AI/Wan2.1-I2V-14B-480P-Diffusers",
+            model_path="Wan-AI/Wan2.2-T2V-A14B-Diffusers",
             modality="video",
             custom_validator="video",
             num_gpus=2,
         ),
-        TI2V_sampling_params,
+        DiffusionSamplingParams(
+            prompt=T2V_PROMPT,
+        ),
     ),
 ]
