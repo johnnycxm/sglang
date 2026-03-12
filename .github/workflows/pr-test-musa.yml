@@ -6,11 +6,12 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
-    target_stage:
-      description: "Specific test stage to run (Optional)"
-      required: false
-      type: string
-      default: ""
+    inputs:
+      target_stage:
+        description: "Specific test stage to run (Optional)"
+        required: false
+        type: string
+        default: ""
   workflow_call:
     inputs:
       ref:
