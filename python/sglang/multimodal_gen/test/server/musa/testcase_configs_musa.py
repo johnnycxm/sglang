@@ -5,7 +5,9 @@ from sglang.multimodal_gen.test.server.testcase_configs import (
     DiffusionSamplingParams,
     DiffusionServerArgs,
     DiffusionTestCase,
+    MULTI_IMAGE_TI2I_sampling_params,
     T2I_sampling_params,
+    TI2I_sampling_params,
     TI2V_sampling_params,
 )
 
@@ -34,6 +36,51 @@ ONE_GPU_MUSA_CASES: list[DiffusionTestCase] = [
         run_consistency_check=False,
     ),
 ]
+
+
+NIGHTLY_1_GPU_MUSA_CASES: list[DiffusionTestCase] = [
+    DiffusionTestCase(
+        "qwen_image_2512_t2i_musa",
+        DiffusionServerArgs(
+            model_path="/data/models/hub/models--Qwen--Qwen-Image-2512/snapshots/25468b98e3276ca6700de15c6628e51b7de54a26",
+            modality="image",
+        ),
+        T2I_sampling_params,
+        run_consistency_check=False,
+    ),
+    DiffusionTestCase(
+        "qwen_image_edit_t2i_musa",
+        DiffusionServerArgs(
+            model_path="/data/models/hub/models--Qwen--Qwen-Image-Edit/snapshots/ac7f9318f633fc4b5778c59367c8128225f1e3de",
+            modality="image",
+        ),
+        TI2I_sampling_params,
+        run_consistency_check=False,
+    ),
+    DiffusionTestCase(
+        "qwen_image_edit_2509_ti2i_musa",
+        DiffusionServerArgs(
+            model_path="/data/models/hub/models--Qwen--Qwen-Image-Edit-2509/snapshots/d3968ef930e841f4c73640fb8afa3b306a78167e",
+            modality="image",
+        ),
+        MULTI_IMAGE_TI2I_sampling_params,
+        run_consistency_check=False,
+    ),
+    DiffusionTestCase(
+        "qwen_image_edit_2511_ti2i_musa",
+        DiffusionServerArgs(
+            model_path="/data/models/hub/models--Qwen--Qwen-Image-Edit-2511/snapshots/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+            modality="image",
+        ),
+        TI2I_sampling_params,
+        run_consistency_check=False,
+    ),
+]
+
+
+ONE_GPU_NIGHTLY_MUSA_CASES: list[DiffusionTestCase] = (
+    ONE_GPU_MUSA_CASES + NIGHTLY_1_GPU_MUSA_CASES
+)
 
 
 TWO_GPU_MUSA_CASES: list[DiffusionTestCase] = [
